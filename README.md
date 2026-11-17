@@ -87,7 +87,7 @@ Installing takes two things: turning on REAPER's built-in web server, and copyin
 2. Click **Add** and, in **Control surface mode**, choose **Web browser interface**.
 3. Leave **Run web server on port** ticked. The default port is 8080: any free port works.
 4. Optional: set a user name and password in **Username:password**, written as `name:password`.
-5. Note the **Access URL** at the bottom of the dialog. It holds the address of the computer on your network and the port, for example `http://192.168.1.155:8080`. You will type it on the tablet.
+5. Note the **Access URL** at the bottom of the dialog. It holds the address of the computer on your network and the port, for example `http://192.168.1.50:8080`. You will type it on the tablet.
 6. Click **OK** in both windows.
 
 ![REAPER's Control Surface Settings dialog with the web browser interface enabled](docs/screenshots/reaper-web-interface-setup.png)
@@ -116,11 +116,11 @@ The page loads `main.js` from the same server, so there is nothing else to copy.
 2. In the browser type the Access URL followed by the file name, with `http://` at the start:
 
    ```
-   http://192.168.1.155:8080/reaper-studio-control.html
+   http://192.168.1.50:8080/reaper-studio-control.html
    ```
 
    Replace the address and port with the ones shown in your Access URL.
-3. Optional: to leave out the file name, choose `reaper-studio-control.html` in the **Default interface** menu of the same REAPER dialog. If it is not listed, reopen the dialog or restart REAPER. Then `http://192.168.1.155:8080` is enough.
+3. Optional: to leave out the file name, choose `reaper-studio-control.html` in the **Default interface** menu of the same REAPER dialog. If it is not listed, reopen the dialog or restart REAPER. Then `http://192.168.1.50:8080` is enough.
 4. Optional: to open the page without browser bars, use **Share → Add to Home Screen** on iOS, or **Add to Home screen** in the Chrome menu on Android.
 
 ### 4. Check that it works
