@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#17120e">
+<title>REAPER — Studio Control</title>
+<script src="main.js"></script>
+<style>
+/* ===== REAPER Studio Control v5 =====
+   Compatibilita': iOS Safari 10.3+ (iPad Air 1), Android Chrome / WebView recenti.
+   Regole seguite: niente gap nei flex, grid-gap accanto a gap, niente display:contents,
+   JavaScript ES5, fader disegnati a mano (nessun input range ruotato). */
+
+/* --- temi: ogni tema ridefinisce soltanto queste variabili --- */
+body{--bg:#17120e;--bg2:#3a2a1c;--panel:#261d16;--panel2:#32261c;--line:#5a4837;--muted:#a08c76;--text:#f1e4cf;
+ --accent:#e8a33d;--accentbg:#4d3412;--accenttx:#ffd48a;--btn:#33271d;--btnact:#4a3825;
+ --cap1:#f0e2c8;--cap2:#8d7a58;--capline:#2a1d10;--rail:#0d0907;--count:#f6c46b}
+body.theme-grafite{--bg:#101419;--bg2:#2a3943;--panel:#1a2027;--panel2:#27313b;--line:#46515c;--muted:#8d9aa6;--text:#edf2f6;
+ --accent:#79dfb1;--accentbg:#244b3d;--accenttx:#a8f2cf;--btn:#28323c;--btnact:#3b4956;
+ --cap1:#aab4bd;--cap2:#3a444e;--capline:#0e1318;--rail:#0b1015;--count:#e5ebf0}
+body.theme-chiaro{--bg:#dedad2;--bg2:#f4f1ea;--panel:#f1eee8;--panel2:#fbfaf7;--line:#b3ac9f;--muted:#6f6a61;--text:#1f1d1a;
+ --accent:#b5651d;--accentbg:#f0d2aa;--accenttx:#5e2e04;--btn:#fbfaf7;--btnact:#dcd6ca;
+ --cap1:#6a655d;--cap2:#2a2825;--capline:#f1eee8;--rail:#c9c2b5;--count:#1f1d1a}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);background:radial-gradient(ellipse at 50% -20%,var(--bg2) 0,var(--bg) 62%);color:var(--text);
+ font:14px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+ -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;overscroll-behavior:none}
+button,input,select,textarea{font:inherit;color:inherit}
+input,textarea{-webkit-user-select:text;user-select:text}
+button{cursor:pointer;border:1px solid var(--line);background:var(--btn);border-radius:5px;padding:0;margin:0;touch-action:manipulation}
+button:active{background:var(--btnact)}
+button.active{background:var(--accentbg);border-color:var(--accent);color:var(--accenttx)}
+svg{display:block;fill:currentColor;pointer-events:none}
+
+#app{display:flex;flex-direction:column;height:100%}
+.top{flex:none;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid var(--line);background:rgba(0,0,0,.22)}
+.brand{display:flex;align-items:center;font-weight:700;letter-spacing:.12em;min-width:0;white-space:nowrap}
+.brandmark{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--bg);text-align:center;line-height:26px;font-weight:900;margin-right:10px}
+.sub{font-size:10px;color:var(--muted);letter-spacing:.15em}
+.topright{display:flex;align-items:center;flex:none}
+.dot{width:8px;height:8px;border-radius:50%;background:#777;margin-right:7px}
+.dot.ok{background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.conntext{color:var(--muted);font-size:11px;margin-right:12px;white-space:nowrap}
+.seg{display:flex;margin-right:8px}
+.seg button{height:32px;padding:0 10px;font-size:11px;letter-spacing:.06em;border-radius:0;margin-left:-1px}
+.seg button:first-child{border-radius:5px 0 0 5px;margin-left:0}
+.seg button:last-child{border-radius:0 5px 5px 0}
+.iconbtn{width:36px;height:32px;display:flex;align-items:center;justify-content:center}
+.iconbtn svg{width:20px;height:20px}
+
+main{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px}
+
+/* --- contatore --- */
+.counter{flex:none;display:flex;align-items:center;justify-content:center;padding:4px 10px;margin-bottom:8px;min-height:48px}
+.pos{font-family:"Barlow","Avenir Next","Helvetica Neue",Roboto,sans-serif;font-weight:500;font-size:34px;line-height:1.1;
+ letter-spacing:.05em;font-variant-numeric:tabular-nums;color:var(--count);white-space:nowrap}
+.pos .sep{color:var(--muted);margin:0 .35em}
+body.cnt-time #posBeat,body.cnt-time .sep,body.cnt-beat #posTime,body.cnt-beat .sep{display:none}
+.miniT{display:none;margin-left:auto}
+.miniT button{width:44px;height:38px;margin-left:5px;display:flex;align-items:center;justify-content:center}
+.miniT svg{width:20px;height:20px}
+body.view-mixer .counter{justify-content:flex-start}
+body.view-mixer .miniT{display:flex}
+body.view-mixer .pos{font-size:26px}
+
+/* --- area di lavoro: tastierino e mixer --- */
+.work{flex:1;min-height:0;display:flex;flex-direction:column}
+.keys{display:grid;grid-auto-flow:dense;grid-auto-rows:minmax(54px,1fr);grid-gap:8px;gap:8px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.key{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0;padding:4px;border-radius:7px;overflow:hidden}
+.key svg{width:32px;height:32px;margin-bottom:6px;flex:none}
+.key.big{grid-row:span 2}
+.key.big svg{width:54px;height:54px}
+.lbl{display:block;max-width:100%;font-size:10px;line-height:1.1;letter-spacing:.12em;text-transform:uppercase;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec{color:#ff7a5c}
+.rec.active{background:#7a2318;border-color:#e0583a;color:#ffd0c4}
+.rec.ask{background:#7a2318;border-color:#ff7a5c;color:#fff}
+.pausekey.active{background:#7a5c12;border-color:#d1a23c;color:#ffe9ae}
+
+.mixer{display:flex;min-height:0;overflow:hidden}
+.strips{flex:1;display:flex;align-items:stretch;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:6px;min-width:0}
+.empty{color:var(--muted);font-size:12px;padding:14px;align-self:center}
+
+body.view-keys .keys{flex:1}
+body.view-keys .mixer{flex:none;margin-top:8px}
+body.view-keys.no-strip .mixer{display:none}
+body.view-mixer .keys{display:none}
+body.view-mixer .mixer{flex:1}
+body.view-both .mixer{flex:1 1 56%;order:1}
+body.view-both .keys{flex:1 1 44%;order:2;margin-top:8px}
+@media (orientation:landscape){
+ body.view-both .work{flex-direction:row}
+ body.view-both .keys{flex:0 0 40%;order:1;margin:0 8px 0 0}
+ body.view-both .mixer{flex:1;order:2;min-width:0}
+}
+
+/* --- striscia di canale --- */
+.strip{flex:none;width:84px;display:flex;flex-direction:column;min-height:0;margin-right:5px;padding:5px 4px;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+body.sw-s .strip{width:64px}
+body.sw-l .strip{width:108px}
+.strip.sel{border-color:var(--accent)}
+.strip.master{position:-webkit-sticky;position:sticky;left:0;z-index:3;box-shadow:4px 0 10px rgba(0,0,0,.35)}
+.sarm{flex:none;height:30px;margin-bottom:4px;font-size:12px;font-weight:700}
+.sarm.active{background:#7a2318;border-color:#e0583a;color:#ffd0c4}
+/* pan: una manopola in modalita' balance, due in stereo pan (pan + width) e in dual pan (sinistro + destro) */
+.knobwrap{flex:none;display:flex;margin-bottom:4px}
+.kc{flex:1;min-width:0;text-align:center;touch-action:none}
+.kc2{display:none}
+.strip.pm2 .kc2{display:block}
+.knob{position:relative;width:32px;height:32px;margin:0 auto;border-radius:50%;background:var(--btn);border:1px solid var(--line)}
+body.sw-s .strip.pm2 .knob{width:25px;height:25px}
+body.sw-s .strip.pm2 .knobi:after{height:8px}
+.kc.drag .knob{border-color:var(--accent)}
+.knobi{position:absolute;left:0;top:0;width:100%;height:100%}
+.knobi:after{content:"";position:absolute;left:50%;top:3px;width:3px;height:11px;margin-left:-1.5px;border-radius:2px;background:var(--accent)}
+.panv{font-size:9px;color:var(--muted);line-height:1.5;white-space:nowrap}
+.sbtns{flex:none;display:flex}
+.sbtns button{flex:1;min-width:0;height:36px;font-size:13px;font-weight:700;border-radius:4px}
+.sbtns button+button{margin-left:3px}
+body.sw-s.view-mixer .sbtns,body.sw-s.view-both .sbtns{flex-direction:column}
+body.sw-s.view-mixer .sbtns button,body.sw-s.view-both .sbtns button{flex:none;height:32px}
+body.sw-s.view-mixer .sbtns button+button,body.sw-s.view-both .sbtns button+button{margin:3px 0 0}
+.bM.active{background:#8a3d2c;border-color:#d9783f;color:#ffd0bd}
+.bS.active{background:#7a5c12;border-color:#d1a23c;color:#ffe9ae}
+
+.fader{position:relative;flex:1;min-height:96px;margin:4px 0;touch-action:none}
+.travel{position:absolute;top:24px;bottom:24px;left:0;right:0}
+.rail{position:absolute;top:-8px;bottom:-8px;left:46%;width:6px;margin-left:-3px;border-radius:3px;background:var(--rail);border:1px solid var(--line)}
+.tick{position:absolute;left:1px;height:10px;margin-top:-5px;font-size:8px;line-height:10px;color:var(--muted);white-space:nowrap}
+.tick.zero{color:var(--text);font-weight:700}
+.thumb{position:absolute;left:46%;width:28px;height:44px;margin:-22px 0 0 -14px;border-radius:5px;border:1px solid var(--capline);
+ background:var(--cap2);background:linear-gradient(180deg,var(--cap1) 0,var(--cap2) 100%);box-shadow:0 2px 5px rgba(0,0,0,.6)}
+.thumb:after{content:"";position:absolute;left:3px;right:3px;top:50%;height:2px;margin-top:-1px;background:var(--capline)}
+.fader.drag .thumb{border-color:var(--accent)}
+.meter{position:absolute;top:-8px;bottom:-8px;right:4px;width:8px;border:1px solid var(--line);border-radius:2px;overflow:hidden;
+ background:#3fae74;background:linear-gradient(to top,#3fae74 0,#9bd05f 66%,#e8c14e 84%,#e8584e 100%)}
+.mcover{position:absolute;left:0;right:0;top:0;height:100%;background:var(--rail)}
+.mpeak{position:absolute;left:0;right:0;height:2px;bottom:0;background:var(--text);opacity:.85}
+.mpeak.clip{background:#ff4d4d;opacity:1}
+body.no-meters .meter{display:none}
+body.no-meters .rail,body.no-meters .thumb{left:58%}
+.sdb{flex:none;text-align:center;font:11px/1.4 ui-monospace,Menlo,Consolas,monospace;margin-bottom:3px}
+.sname{flex:none;font-size:10.5px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 3px;border-radius:3px;background:var(--btn)}
+body.no-pan .knobwrap,body.no-arm .sarm{display:none}
+
+/* vista Tasti: la striscia tracce si riduce a nome + M / S / R */
+body.view-keys .strip{width:132px;flex-direction:row;flex-wrap:wrap;align-items:center}
+body.view-keys .fader,body.view-keys .knobwrap,body.view-keys .sdb{display:none}
+body.view-keys .sname{order:-1;flex:0 0 100%;margin-bottom:4px}
+body.view-keys .sbtns{flex:1}
+body.view-keys .sbtns button{height:40px}
+body.view-keys .sarm{flex:0 0 32%;height:40px;margin:0 0 0 3px;order:2}
+body.view-keys .strip.master{position:static;box-shadow:none}
+
+/* --- pannelli sovrapposti --- */
+.sheet{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:20;background:rgba(0,0,0,.55)}
+.sheet.open{display:block}
+.card{position:absolute;top:0;right:0;bottom:0;width:440px;max-width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--panel);border-left:1px solid var(--line);padding:12px 14px 30px}
+.card h2{font-size:15px;margin:0;letter-spacing:.06em}
+.card h3{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px;font-weight:600}
+.cardhead{display:flex;align-items:center;justify-content:space-between}
+.row{display:flex;align-items:center;justify-content:space-between;min-height:40px;border-bottom:1px solid var(--line)}
+.row span{padding-right:10px}
+.row select,.krow select,.krow input[type=text],.card textarea,.dlg input{background:var(--btn);border:1px solid var(--line);border-radius:5px;padding:6px 8px;min-height:34px}
+.row input[type=checkbox],.krow input[type=checkbox]{width:22px;height:22px;flex:none}
+.tbtn{padding:0 12px;min-height:36px;font-size:12px}
+.krow{display:flex;align-items:center;flex-wrap:wrap;padding:5px 0;border-bottom:1px solid var(--line)}
+.krow .kn{flex:none;width:20px;color:var(--muted);font-size:11px}
+.krow select{flex:1;min-width:0}
+.krow label{display:flex;align-items:center;font-size:11px;margin-left:8px}
+.krow label input{margin-right:4px}
+.krow .mini{width:32px;height:34px;margin-left:4px;font-size:14px}
+.krow .cust{flex:0 0 100%;display:flex;padding:5px 0 0 20px}
+.krow .cust input{flex:1;min-width:0}
+.krow .cust input+input{margin-left:5px}
+.card textarea{width:100%;height:84px;font:11px/1.3 ui-monospace,Menlo,Consolas,monospace;margin-bottom:6px}
+.note{color:var(--muted);font-size:11px;line-height:1.4;margin:6px 0}
+.btnrow{display:flex;flex-wrap:wrap}
+.btnrow button{margin:0 6px 6px 0}
+.dlg{position:absolute;left:50%;top:18%;width:320px;max-width:92%;margin-left:-160px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+@media(max-width:340px){.dlg{left:4%;margin-left:0}}
+.dlg input{width:100%;margin:8px 0;font-size:18px}
+
+@media(min-width:700px){
+ .pos{font-size:52px}
+ .key svg{width:42px;height:42px;margin-bottom:9px}
+ .key.big svg{width:76px;height:76px}
+ .lbl{font-size:12px}
+ .counter{min-height:66px}
+}
+@media(max-width:560px){.conntext{display:none}.sub{display:none}.seg button{padding:0 8px}}
+@media(max-width:560px){
+ body.view-mixer .counter{flex-wrap:wrap;justify-content:center}
+ body.view-mixer .miniT{flex:0 0 100%;margin:4px 0 2px}
+ body.view-mixer .miniT button{flex:1;margin:0 3px}
+}
+body.view-both .lbl{letter-spacing:.03em}
+/* schermi bassi (telefono in orizzontale): si stringe tutto cio' che non e' il fader */
+@media(max-height:480px){
+ .top{height:38px}
+ .counter{min-height:40px;margin-bottom:6px}
+ main{padding:6px}
+ .sarm{height:24px;margin-bottom:3px}
+ .sbtns button{height:28px}
+ .knob,body.sw-s .strip.pm2 .knob{width:24px;height:24px}
+ .knobi:after{height:7px}
+ .panv,.tick{display:none}
+ .fader{min-height:70px;margin:3px 0}
+ .travel{top:17px;bottom:17px}
+ .thumb{height:30px;margin-top:-15px}
+ .sdb{margin-bottom:2px}
+}
+@media(max-width:380px){.brandtx{display:none}}
+</style>
+</head>
+<body class="theme-ambra view-mixer">
+<div id="app">
+<header class="top">
+ <div class="brand"><div class="brandmark">R</div><div class="brandtx">REAPER <span class="sub">/ STUDIO CONTROL</span></div></div>
+ <div class="topright">
+  <span class="dot" id="connDot"></span><span class="conntext" id="connText">In attesa di REAPER</span>
+  <div class="seg" id="viewSeg"><button data-view="keys">Tasti</button><button data-view="mixer">Mixer</button><button data-view="both">Entrambi</button></div>
+  <button class="iconbtn" id="gearBtn" title="Impostazioni"><svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h10M20 17h0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.6"/><circle cx="9" cy="12" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg></button>
+ </div>
+</header>
+<main>
+ <div class="panel counter">
+  <div class="pos"><span id="posTime">00:00</span><span class="sep">·</span><span id="posBeat">1.1.00</span></div>
+  <div class="miniT" id="miniT"></div>
+ </div>
+ <div class="work">
+  <div class="keys" id="keys"></div>
+  <div class="panel mixer"><div class="strips" id="strips"></div></div>
+ </div>
+</main>
+</div>
+
+<div class="sheet" id="settings"><div class="card" id="settingsCard"></div></div>
+<div class="sheet" id="gotoDlg"><div class="dlg">
+ <strong>Vai a…</strong>
+ <input type="text" id="gotoIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="1:02.500">
+ <div class="note">Tempo (1:02.500) oppure battuta (12.1.00).</div>
+ <div class="btnrow"><button class="tbtn active" id="gotoOk">Vai</button><button class="tbtn" id="gotoNo">Annulla</button></div>
+</div></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   1. CATALOGO DELLE AZIONI
+   id = Command ID di REAPER (Actions > Show action list).
+   tg = azione con stato acceso/spento, da interrogare con GET.
+   Per aggiungere un'azione al menu basta una riga qui e, se serve, un'icona in ICON.
+   ============================================================ */
+var CAT={
+ start:{id:40042,l:'Inizio'},
+ end:{id:40043,l:'Fine'},
+ stop:{id:40667,l:'Stop'},
+ pause:{id:1008,l:'Pausa'},
+ play:{id:1007,l:'Play'},
+ playstop:{id:40044,l:'Play/Stop'},
+ rec:{id:1013,l:'Rec'},
+ back:{id:41043,l:'Indietro',t:'Cursore indietro di una battuta'},
+ fwd:{id:41042,l:'Avanti',t:'Cursore avanti di una battuta'},
+ repeat:{id:1068,l:'Repeat'},
+ undo:{id:40029,l:'Undo'},
+ redo:{id:40030,l:'Redo'},
+ metro:{id:40364,l:'Metronomo',tg:1},
+ snap:{id:1157,l:'Snap',tg:1},
+ mprev:{id:40172,l:'Marker prec.'},
+ mnext:{id:40173,l:'Marker succ.'},
+ addmarker:{id:40157,l:'Nuovo marker'},
+ save:{id:40026,l:'Salva'},
+ 'goto':{id:0,l:'Vai a…'}
+};
+var MARKER='<path d="M9.6 7.3v9.4a.5.5 0 0 1-.78.42L2.9 12.4a.5.5 0 0 1 0-.8l5.92-4.72a.5.5 0 0 1 .78.42z"/><rect x="14.6" y="4" width="1.8" height="16" rx=".9"/><path d="M16.4 4.6h4.4a.4.4 0 0 1 .33.63L19.6 7.9l1.53 2.67a.4.4 0 0 1-.33.6h-4.4z"/>';
+var START='<rect x="3.5" y="5" width="3" height="14" rx="1"/><path d="M20.5 5.2v13.6a.6.6 0 0 1-.95.5L9 12.5a.6.6 0 0 1 0-1l10.55-6.8a.6.6 0 0 1 .95.5z"/>';
+var FLIP='<g transform="translate(24 0) scale(-1 1)">';
+var ICON={
+ start:START,
+ end:FLIP+START+'</g>',
+ stop:'<rect x="5.5" y="5.5" width="13" height="13" rx="2.4"/>',
+ pause:'<rect x="5.5" y="4.5" width="4.6" height="15" rx="1.6"/><rect x="13.9" y="4.5" width="4.6" height="15" rx="1.6"/>',
+ play:'<path d="M7.5 4.9v14.2a.9.9 0 0 0 1.38.76l11-7.1a.9.9 0 0 0 0-1.52l-11-7.1A.9.9 0 0 0 7.5 4.9z"/>',
+ playstop:'<path d="M2.8 6.2v11.6a.7.7 0 0 0 1.1.58l8.3-5.8a.7.7 0 0 0 0-1.16L3.9 5.62a.7.7 0 0 0-1.1.58z"/><rect x="14.4" y="7.6" width="7" height="8.8" rx="1.4"/>',
+ rec:'<circle cx="12" cy="12" r="7.6"/>',
+ back:'<path d="M12.8 5.6v12.8a.6.6 0 0 1-.93.5L3.1 12.5a.6.6 0 0 1 0-1l8.77-6.4a.6.6 0 0 1 .93.5z"/><path d="M21.4 5.6v12.8a.6.6 0 0 1-.93.5l-8.77-6.4a.6.6 0 0 1 0-1l8.77-6.4a.6.6 0 0 1 .93.5z"/>',
+ fwd:'<path d="M11.2 5.6v12.8a.6.6 0 0 0 .93.5l8.77-6.4a.6.6 0 0 0 0-1l-8.77-6.4a.6.6 0 0 0-.93.5z"/><path d="M2.6 5.6v12.8a.6.6 0 0 0 .93.5l8.77-6.4a.6.6 0 0 0 0-1L3.53 5.1a.6.6 0 0 0-.93.5z"/>',
+ repeat:'<path d="M4.5 11.5V10a4 4 0 0 1 4-4H17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M19.5 12.5V14a4 4 0 0 1-4 4H7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M16 2.6l5 3.4-5 3.4z"/><path d="M8 14.6l-5 3.4 5 3.4z"/>',
+ undo:'<path d="M9 8.5H15a4.5 4.5 0 0 1 0 9H8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M10.4 4.2L5.3 8.5l5.1 4.3z"/>',
+ redo:'<path d="M15 8.5H9a4.5 4.5 0 0 0 0 9h7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M13.6 4.2l5.1 4.3-5.1 4.3z"/>',
+ metro:'<path fill-rule="evenodd" d="M9.3 3.2h5.4a1 1 0 0 1 .97.77l3.45 15.2a1.5 1.5 0 0 1-1.46 1.83H6.34a1.5 1.5 0 0 1-1.46-1.83l3.45-15.2a1 1 0 0 1 .97-.77zM11.2 17.8l2.4-9.2 1.5.4-2.3 8.8z"/>',
+ snap:'<path fill-rule="evenodd" d="M4.5 3.5h5.2v8.3a2.3 2.3 0 0 0 4.6 0V3.5h5.2v8.3a7.5 7.5 0 0 1-15 0zM4.5 6.4h5.2v1.4H4.5zM14.3 6.4h5.2v1.4h-5.2z"/>',
+ mprev:MARKER,
+ mnext:FLIP+MARKER+'</g>',
+ addmarker:'<rect x="4.6" y="3.5" width="1.9" height="17" rx=".9"/><path d="M6.5 4.2h8.4a.4.4 0 0 1 .34.62L13.4 8l1.84 3.18a.4.4 0 0 1-.34.62H6.5z"/><path d="M17.6 13.6v6.4M14.4 16.8h6.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>',
+ save:'<path fill-rule="evenodd" d="M5 3.5h11.2l4.3 4.3V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19V5A1.5 1.5 0 0 1 5 3.5zM7.5 5.5v4h7v-4zM12 12.4a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6z"/>',
+ 'goto':'<path fill-rule="evenodd" d="M12 2.8a9.2 9.2 0 1 0 0 18.4 9.2 9.2 0 0 0 0-18.4zM12 5.8a6.2 6.2 0 1 1 0 12.4 6.2 6.2 0 0 1 0-12.4zM12 9.4a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/>',
+ custom:'<path d="M13.6 2.6L5.4 13.5h5.1l-1.3 7.9 8.4-11.1h-5.2z"/>'
+};
+var MINI=['start','stop','play','pause','rec','repeat'];   /* trasporto ridotto della vista Mixer */
+
+/* ============================================================
+   2. CONFIGURAZIONE (salvata in localStorage, per dispositivo)
+   ============================================================ */
+var LS='reaperStudioControl.v5';
+function defaults(){return{
+ view:(window.innerWidth>=700?'both':'mixer'),  /* keys | mixer | both */
+ theme:'ambra',     /* ambra | grafite | chiaro */
+ counter:'both',    /* both | time | beat */
+ sw:'m',            /* larghezza strisce: s | m | l */
+ maxdb:12,          /* fondo scala del fader: 12 oppure 6 */
+ ver:2,master:1,meters:1,pan:1,arm:1,colors:1,hidden:0,
+ cols:4,strip:1,recConfirm:0,
+ keys:[{a:'start'},{a:'back'},{a:'fwd'},{a:'play',big:1},{a:'repeat'},{a:'metro'},{a:'snap'},
+       {a:'mprev'},{a:'mnext'},{a:'goto'},{a:'pause'},{a:'undo'},{a:'redo'},{a:'rec'},{a:'stop'}]
+};}
+var cfg=loadCfg();
+function loadCfg(){var d=defaults(),s,k;try{s=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){s=null;}
+ d=mergeCfg(d,s);
+ if(s&&s.ver!==2){d.pan=1;d.ver=2;}   /* dalla prima v5: il pan ora e' acceso in partenza */
+ return d;}
+function mergeCfg(d,s){var k;if(s&&typeof s==='object'){for(k in d)if(d.hasOwnProperty(k)&&s[k]!==undefined&&typeof s[k]===typeof d[k])d[k]=s[k];}
+ if(!(d.keys instanceof Array)||!d.keys.length)d.keys=defaults().keys;return d;}
+function saveCfg(){try{localStorage.setItem(LS,JSON.stringify(cfg));}catch(e){}}
+
+/* ============================================================
+   3. UTILITA'
+   ============================================================ */
+function $(id){return document.getElementById(id);}
+function tog(el,c,on){if(!el)return;if(on)el.classList.add(c);else el.classList.remove(c);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function pad2(n){n=Math.floor(n);return(n<10?'0':'')+n;}
+function now(){return new Date().getTime();}
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+function unesc(s){return typeof simple_unescape==='function'?simple_unescape(s):s;}
+
+/* Legge del fader: vol=(p/P0)^4, dove P0 e' la posizione di 0 dB.
+   Con fondo scala +12 dB lo 0 dB cade al 71% della corsa; in basso il fader arriva a -inf. */
+function p0(){return Math.pow(10,-cfg.maxdb/80);}
+function volToPos(v){return v>0?clamp(p0()*Math.pow(v,0.25),0,1):0;}
+function posToVol(p){return p<=0.002?0:Math.pow(p/p0(),4);}
+function dbToPos(db){return volToPos(Math.pow(10,db/20));}
+function dbText(v){if(!(v>0.0000002))return '-inf';var d=20*Math.log(v)/Math.LN10;return(d>0.04?'+':'')+d.toFixed(1);}
+function panText(p){var n=Math.round(Math.abs(p)*100);return n<1?'C':n+(p<0?'L':'R');}
+/* Modalita' di pan di REAPER (campo panmode): 0 e 3 = balance, 5 = stereo pan, 6 = dual pan.
+   Nel campo successivo al meter REAPER manda la width (stereo pan) oppure il pan destro (dual pan). */
+function panMode(m){return m===5||m===6?m:3;}
+function knobText(type,v,mode){return(type==='pan2'&&mode===5)?'W'+Math.round(v*100):panText(v);}
+function meterPct(tenthDb){return clamp((tenthDb/10+60)/66*100,0,100);}   /* scala del meter: da -60 a +6 dB */
+
+/* ============================================================
+   4. COMUNICAZIONE CON REAPER (main.js del Web Control)
+   ============================================================ */
+var demo=(typeof wwr_req!=='function');
+var lastReply=0,connOk=null,polled=[],needReload=false,demoTimers=[];
+function cmd(s){if(demo)demoCmd(String(s));else wwr_req(String(s));}
+function setConn(ok,msg){if(connOk===ok&&$('connText').textContent===msg)return;connOk=ok;tog($('connDot'),'ok',ok);$('connText').textContent=msg;}
+
+function tracksWanted(){return cfg.view!=='keys'||cfg.strip;}
+function setupPolling(){
+ var want=[['TRANSPORT',100]],i,ids=[],k,c;
+ if(tracksWanted())want.push(['TRACK',(cfg.meters&&cfg.view!=='keys')?200:500]);
+ for(i=0;i<cfg.keys.length;i++){k=cfg.keys[i];
+  if(k.a==='custom'){if(k.id)ids.push('GET/'+k.id);}
+  else{c=CAT[k.a];if(c&&c.tg)ids.push('GET/'+c.id);}}
+ if(ids.length)want.push([ids.join(';'),500]);
+ if(JSON.stringify(want)===JSON.stringify(polled))return;
+ if(demo){for(i=0;i<demoTimers.length;i++)clearInterval(demoTimers[i]);demoTimers=[];
+  for(i=0;i<want.length;i++)demoTimers.push(setInterval((function(q){return function(){demoCmd(q);};})(want[i][0]),want[i][1]));
+  polled=want;return;}
+ if(polled.length){
+  if(typeof wwr_req_recur_cancel==='function'){for(i=0;i<polled.length;i++)wwr_req_recur_cancel(polled[i][0]);}
+  else{needReload=true;return;}   /* main.js molto vecchio: si ricarica alla chiusura delle impostazioni */
+ }
+ for(i=0;i<want.length;i++)wwr_req_recur(want[i][0],want[i][1]);
+ polled=want;
+}
+
+var ps=0,rep=false,cmdState={};
+window.wwr_onreply=function(res){
+ var lines=res.split('\n'),i,t,list=null;
+ lastReply=now();setConn(true,demo?'Demo: main.js assente':'Collegato a REAPER');
+ for(i=0;i<lines.length;i++){t=lines[i].split('\t');
+  if(t[0]==='TRANSPORT'&&t.length>4){ps=+t[1];rep=(+t[3])!==0;setCounter(+t[2],t[5]||'');}
+  else if(t[0]==='TRACK'&&t.length>4){(list||(list=[])).push({id:+t[1],name:unesc(t[2]||''),flags:+t[3]||0,vol:+t[4]||0,pan:+t[5]||0,
+   peak:(t[6]===undefined||t[6]==='')?-1500:+t[6],pos:(t[7]===undefined||t[7]==='')?-1500:+t[7],pan2:+t[8]||0,pm:panMode(+t[9]||0),color:+t[13]||0});}
+  else if(t[0]==='CMDSTATE'){cmdState[t[1]]=(+t[2])>0;}
+ }
+ refreshKeys();
+ if(list)updateTracks(list);   /* la lista arriva intera: le tracce cancellate spariscono da sole */
+};
+setInterval(function(){if(!demo&&lastReply&&now()-lastReply>3000)setConn(false,'REAPER non risponde');},1000);
+
+/* ============================================================
+   5. CONTATORE
+   ============================================================ */
+var lastTime='',lastBeat='';
+function setCounter(sec,beat){
+ sec=Math.max(0,Math.floor(sec||0));
+ var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60,tx=(h?h+':':'')+pad2(m)+':'+pad2(s);
+ if(tx!==lastTime){lastTime=tx;$('posTime').textContent=tx;}
+ if(beat&&beat!==lastBeat){lastBeat=beat;$('posBeat').textContent=beat;}
+}
+
+/* ============================================================
+   6. TASTIERINO
+   ============================================================ */
+var keysEl=$('keys'),miniEl=$('miniT'),recAsk=0;
+function keyInfo(k){
+ if(k.a==='custom')return{a:'custom',id:k.id||'',l:k.l||k.id||'?',ic:'custom',t:'Azione '+(k.id||'')};
+ var c=CAT[k.a]||CAT.stop;return{a:CAT[k.a]?k.a:'stop',id:c.id,l:c.l,ic:CAT[k.a]?k.a:'stop',t:c.t||c.l};
+}
+function keyHtml(k,attr,withLabel){
+ var c=keyInfo(k),cls='key'+(k.big?' big':'')+(c.a==='rec'?' rec':'')+(c.a==='pause'?' pausekey':'');
+ return '<button class="'+(withLabel?cls:cls.replace('key ','').replace(/^key$/,''))+'" '+attr+' title="'+esc(c.t)+'"><svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[c.ic]+'</svg>'+(withLabel?'<span class="lbl">'+esc(c.l)+'</span>':'')+'</button>';
+}
+function renderKeys(){
+ var h='',i;
+ for(i=0;i<cfg.keys.length;i++)h+=keyHtml(cfg.keys[i],'data-i="'+i+'"',true);
+ keysEl.innerHTML=h;
+ keysEl.style.gridTemplateColumns='repeat('+cfg.cols+',minmax(0,1fr))';
+ h='';for(i=0;i<MINI.length;i++)h+=keyHtml({a:MINI[i]},'data-a="'+MINI[i]+'"',false);
+ miniEl.innerHTML=h;
+ keyStates=[];refreshKeys();
+}
+function isActive(c){
+ switch(c.a){
+  case 'play':return ps===1;
+  case 'playstop':return ps===1||ps===5;
+  case 'stop':return ps===0;
+  case 'pause':return ps===2||ps===6;
+  case 'rec':return ps===5||ps===6;
+  case 'repeat':return rep;
+  case 'goto':return false;
+  default:return !!cmdState[String(c.id)];
+ }
+}
+var keyStates=[];
+function refreshKeys(){
+ var b=keysEl.children,i,on,n=b.length,m=miniEl.children;
+ for(i=0;i<n;i++){on=isActive(keyInfo(cfg.keys[i]));if(keyStates[i]!==on){keyStates[i]=on;tog(b[i],'active',on);}}
+ for(i=0;i<m.length;i++){on=isActive({a:MINI[i],id:CAT[MINI[i]].id});if(keyStates[n+i]!==on){keyStates[n+i]=on;tog(m[i],'active',on);}}
+}
+function pressKey(k,btn){
+ var c=keyInfo(k);
+ if(c.a==='goto'){openGoto();return;}
+ if(c.a==='rec'&&cfg.recConfirm&&ps!==5&&ps!==6){     /* conferma Rec: secondo tocco entro 2,5 secondi */
+  if(now()-recAsk>2500){recAsk=now();tog(btn,'ask',true);setTimeout(function(){tog(btn,'ask',false);},2500);return;}
+  recAsk=0;tog(btn,'ask',false);
+ }
+ if(c.id!==''&&c.id!==0)cmd(c.id+';TRANSPORT');
+}
+function keyClick(e){
+ var b=e.target;while(b&&b!==this&&b.tagName!=='BUTTON')b=b.parentNode;
+ if(!b||b===this)return;
+ if(b.getAttribute('data-i')!==null)pressKey(cfg.keys[+b.getAttribute('data-i')],b);
+ else pressKey({a:b.getAttribute('data-a')},b);
+}
+keysEl.addEventListener('click',keyClick);
+miniEl.addEventListener('click',keyClick);
+
+function openGoto(){tog($('gotoDlg'),'open',true);var i=$('gotoIn');i.value='';try{i.focus();}catch(e){}}
+function closeGoto(){tog($('gotoDlg'),'open',false);$('gotoIn').blur();}
+function doGoto(){var v=$('gotoIn').value.replace(/^\s+|\s+$/g,'');closeGoto();
+ if(v)cmd('SET/POS_STR/'+encodeURIComponent(v).replace(/%3A/gi,':')+';TRANSPORT');}
+$('gotoOk').addEventListener('click',doGoto);
+$('gotoNo').addEventListener('click',closeGoto);
+$('gotoIn').addEventListener('keydown',function(e){if(e.keyCode===13)doGoto();});
+$('gotoDlg').addEventListener('click',function(e){if(e.target===this)closeGoto();});
+
+/* ============================================================
+   7. MIXER
+   Flag traccia di REAPER: 2 selezionata, 8 mute, 16 solo, 32 solo-in-place,
+   64 armata, 1024 nascosta dal mixer. La traccia 0 e' il master.
+   ============================================================ */
+var stripsEl=$('strips'),S={},stripOrder='',hold={},TICKS=[12,6,0,-6,-12,-24,-48];
+function visible(t){return t.id===0?!!cfg.master:(cfg.hidden||!(t.flags&1024));}
+function buildStrip(t){
+ var el=document.createElement('div'),h='',i,db;
+ el.className='strip'+(t.id===0?' master':'');el.setAttribute('data-id',t.id);
+ h+=t.id!==0?'<button class="sarm" data-c="RECARM">R</button>':'<div class="sarm" style="visibility:hidden"></div>';   /* il master non si arma: resta lo spazio, per allineare i fader */
+ var kn='"><div class="knob"><div class="knobi"></div></div><div class="panv"></div></div>';
+ h+='<div class="knobwrap"><div class="kc" data-d="pan'+kn+'<div class="kc kc2" data-d="pan2'+kn+'</div>';
+ h+='<div class="sbtns"><button class="bM" data-c="MUTE">M</button>'+(t.id!==0?'<button class="bS" data-c="SOLO">S</button>':'')+'</div>';
+ h+='<div class="fader" data-d="vol"><div class="travel"><div class="rail"></div>';
+ for(i=0;i<TICKS.length;i++){db=TICKS[i];if(db>cfg.maxdb)continue;
+  h+='<div class="tick'+(db===0?' zero':'')+'" style="top:'+((1-dbToPos(db))*100).toFixed(2)+'%">'+(db>0?'+':'')+db+'</div>';}
+ h+='<div class="meter"><div class="mcover"></div><div class="mpeak"></div></div><div class="thumb"></div></div></div>';
+ h+='<div class="sdb">0.0</div><div class="sname"></div>';
+ el.innerHTML=h;
+ return{el:el,id:t.id,arm:el.querySelector('.sarm'),bM:el.querySelector('.bM'),bS:el.querySelector('.bS'),
+  knobi:el.querySelectorAll('.knobi'),panv:el.querySelectorAll('.panv'),fader:el.querySelector('.fader'),thumb:el.querySelector('.thumb'),
+  cover:el.querySelector('.mcover'),mpeak:el.querySelector('.mpeak'),db:el.querySelector('.sdb'),name:el.querySelector('.sname'),L:{}};
+}
+function updateTracks(all){
+ var list=[],i,order,s;
+ for(i=0;i<all.length;i++)if(visible(all[i]))list.push(all[i]);
+ order=list.map(function(t){return t.id;}).join(',');
+ if(order!==stripOrder){
+  stripOrder=order;stripsEl.innerHTML='';
+  var old=S;S={};
+  for(i=0;i<list.length;i++){s=old[list[i].id]||buildStrip(list[i]);S[list[i].id]=s;stripsEl.appendChild(s.el);}
+  if(!list.length)stripsEl.innerHTML='<div class="empty">Nessuna traccia da mostrare.</div>';
+ }
+ for(i=0;i<list.length;i++)updateStrip(S[list[i].id],list[i]);
+}
+function setVolUI(s,v){var p=volToPos(v);s.thumb.style.top=((1-p)*100).toFixed(2)+'%';s.db.textContent=dbText(v);}
+function setPanUI(s,type,v){var i=type==='pan2'?1:0,r='rotate('+(v*135).toFixed(1)+'deg)';s.knobi[i].style.webkitTransform=r;s.knobi[i].style.transform=r;s.panv[i].textContent=knobText(type,v,s.L.pm);}
+function updateStrip(s,t){
+ var L=s.L,nm,free=!(drags.busy[t.id])&&!(hold[t.id]>now()),c,v;
+ nm=t.id===0?'MASTER':(t.id+'  '+(t.name||'Traccia '+t.id));
+ if(L.name!==nm){L.name=nm;s.name.textContent=nm;s.name.title=nm;}
+ c=cfg.colors?(t.color&0xffffff):0;
+ if(L.color!==c){L.color=c;
+  if(c){var r=c>>16&255,g=c>>8&255,b=c&255;s.name.style.background='rgb('+r+','+g+','+b+')';s.name.style.color=(r*299+g*587+b*114>140000)?'#111':'#fff';}
+  else{s.name.style.background='';s.name.style.color='';}}
+ if(L.flags!==t.flags){L.flags=t.flags;tog(s.el,'sel',t.flags&2);tog(s.bM,'active',t.flags&8);tog(s.bS,'active',t.flags&48);tog(s.arm,'active',t.flags&64);}
+ if(free&&L.vol!==t.vol){L.vol=t.vol;setVolUI(s,t.vol);}
+ if(L.pm!==t.pm){L.pm=t.pm;tog(s.el,'pm2',t.pm!==3);L.pan=L.pan2=null;
+  s.panv[0].parentNode.title=t.pm===6?'Pan del canale sinistro':(t.pm===5?'Pan':'Balance');
+  s.panv[1].parentNode.title=t.pm===6?'Pan del canale destro':'Width';}
+ if(free&&L.pan!==t.pan){L.pan=t.pan;setPanUI(s,'pan',t.pan);}
+ if(free&&t.pm!==3&&L.pan2!==t.pan2){L.pan2=t.pan2;setPanUI(s,'pan2',t.pan2);}
+ if(cfg.meters&&cfg.view!=='keys'){
+  v=meterPct(t.pos);if(L.pos!==v){L.pos=v;s.cover.style.height=(100-v).toFixed(1)+'%';}
+  v=meterPct(t.peak);if(L.peak!==v){L.peak=v;s.mpeak.style.bottom=v.toFixed(1)+'%';tog(s.mpeak,'clip',t.peak>0);}
+ }
+}
+/* M / S / R: l'interfaccia risponde subito, REAPER conferma al giro successivo */
+stripsEl.addEventListener('click',function(e){
+ var b=e.target,c=b.getAttribute&&b.getAttribute('data-c'),st,id;
+ if(!c)return;
+ st=b.parentNode;while(st&&!st.getAttribute('data-id'))st=st.parentNode;if(!st)return;
+ id=st.getAttribute('data-id');
+ b.classList.toggle('active');if(S[id])S[id].L.flags=-1;
+ cmd('SET/TRACK/'+id+'/'+c+'/-1;TRACK');
+});
+
+/* --- trascinamento di fader e manopole pan ---
+   Il gesto e' relativo: toccare il fader non lo fa saltare, si muove di quanto si muove il dito.
+   Le manopole si muovono in verticale, come in REAPER; mentre si girano il valore compare al posto dei dB.
+   Il doppio tocco riporta al valore di partenza: 0 dB, pan al centro, width 100%, dual pan tutto a sinistra e tutto a destra.
+   Se il primo movimento e' orizzontale il gesto fa scorrere il mixer. */
+var drags={map:{},busy:{}},lastTap={};
+function findDrag(node){while(node&&node!==stripsEl){if(node.getAttribute&&node.getAttribute('data-d'))return node;node=node.parentNode;}return null;}
+function dragStart(key,node,x,y){
+ var st=node.parentNode,id,s,type=node.getAttribute('data-d'),tk,t=now(),v;
+ while(st&&!st.getAttribute('data-id'))st=st.parentNode;if(!st)return false;
+ id=st.getAttribute('data-id');s=S[id];tk=id+type;
+ if(!s)return false;
+ if(lastTap[tk]&&t-lastTap[tk]<350){lastTap[tk]=0;
+  if(type==='vol'){s.L.vol=1;setVolUI(s,1);cmd('SET/TRACK/'+id+'/VOL/1;SET/UNDO/Volume traccia (web)');}
+  else{v=type==='pan2'?1:(s.L.pm===6?-1:0);s.L[type]=v;setPanUI(s,type,v);cmd('SET/TRACK/'+id+SETPATH[type]+v+';SET/UNDO/Pan traccia (web)');}
+  hold[id]=t+700;return true;}
+ drags.map[key]={id:id,s:s,type:type,node:node,x:x,y:y,lock:'',moved:false,sent:0,
+  start:type==='vol'?volToPos(s.L.vol||0):(s.L[type]||0),val:null,
+  h:type==='vol'?(node.querySelector('.travel').offsetHeight||200):150,scroll:stripsEl.scrollLeft};
+ return true;
+}
+function dragMove(key,x,y){
+ var d=drags.map[key],dx,dy,p,v;if(!d)return false;
+ dx=x-d.x;dy=y-d.y;
+ if(!d.lock){if(Math.abs(dx)<6&&Math.abs(dy)<6)return true;
+  d.lock=Math.abs(dy)>=Math.abs(dx)?'v':'h';d.moved=true;
+  if(d.lock==='v'){drags.busy[d.id]=(drags.busy[d.id]||0)+1;tog(d.node,'drag',true);}}
+ if(d.lock==='h'){stripsEl.scrollLeft=d.scroll-dx;return true;}
+ if(d.type==='vol'){p=clamp(d.start-dy/d.h,0,1);v=posToVol(p);d.val=v;d.s.L.vol=v;
+  d.s.thumb.style.top=((1-p)*100).toFixed(2)+'%';d.s.db.textContent=dbText(v);}
+ else{v=clamp(d.start-dy/d.h*2,-1,1);if(Math.abs(v)<0.03)v=0;d.val=v;d.s.L[d.type]=v;setPanUI(d.s,d.type,v);d.s.db.textContent=knobText(d.type,v,d.s.L.pm);}
+ if(now()-d.sent>45){d.sent=now();sendDrag(d);}
+ return true;
+}
+var SETPATH={vol:'/VOL/',pan:'/PAN/',pan2:'/WIDTH/'};   /* WIDTH porta la width oppure, in dual pan, il pan destro */
+function sendDrag(d){cmd('SET/TRACK/'+d.id+SETPATH[d.type]+d.val.toFixed(5));}
+function dragEnd(key){
+ var d=drags.map[key];if(!d)return;delete drags.map[key];
+ if(!d.moved){lastTap[d.id+d.type]=now();return;}
+ if(d.lock!=='v')return;
+ drags.busy[d.id]--;tog(d.node,'drag',false);hold[d.id]=now()+700;
+ if(d.type!=='vol')d.s.db.textContent=dbText(d.s.L.vol);
+ if(d.val!==null){sendDrag(d);cmd('SET/UNDO/'+(d.type==='vol'?'Volume':'Pan')+' traccia (web)');}
+}
+var touchOpt=false;try{window.addEventListener('test',null,Object.defineProperty({},'passive',{get:function(){touchOpt={passive:false};}}));}catch(e){}
+stripsEl.addEventListener('touchstart',function(e){
+ var i,t,n,hit=false;
+ for(i=0;i<e.changedTouches.length;i++){t=e.changedTouches[i];n=findDrag(t.target);
+  if(n&&dragStart('t'+t.identifier,n,t.clientX,t.clientY))hit=true;}
+ if(hit&&e.cancelable)e.preventDefault();
+},touchOpt);
+stripsEl.addEventListener('touchmove',function(e){
+ var i,t,hit=false;
+ for(i=0;i<e.changedTouches.length;i++){t=e.changedTouches[i];if(dragMove('t'+t.identifier,t.clientX,t.clientY))hit=true;}
+ if(hit&&e.cancelable)e.preventDefault();
+},touchOpt);
+function touchEnd(e){for(var i=0;i<e.changedTouches.length;i++)dragEnd('t'+e.changedTouches[i].identifier);}
+stripsEl.addEventListener('touchend',touchEnd);
+stripsEl.addEventListener('touchcancel',touchEnd);
+stripsEl.addEventListener('mousedown',function(e){var n=findDrag(e.target);if(n&&dragStart('m',n,e.clientX,e.clientY))e.preventDefault();});
+document.addEventListener('mousemove',function(e){dragMove('m',e.clientX,e.clientY);});
+document.addEventListener('mouseup',function(){dragEnd('m');});
+
+/* ============================================================
+   8. IMPOSTAZIONI
+   ============================================================ */
+var card=$('settingsCard');
+function sel(key,opts){var h='<select data-k="'+key+'">',i;for(i=0;i<opts.length;i++)h+='<option value="'+opts[i][0]+'"'+(String(cfg[key])===String(opts[i][0])?' selected':'')+'>'+opts[i][1]+'</option>';return h+'</select>';}
+function chk(key){return '<input type="checkbox" data-k="'+key+'"'+(cfg[key]?' checked':'')+'>';}
+function row(label,ctl){return '<label class="row"><span>'+label+'</span>'+ctl+'</label>';}
+function renderSettings(){
+ var h='<div class="cardhead"><h2>Impostazioni</h2><button class="tbtn active" data-act="close">Chiudi</button></div>',i,k,a,fs=document.documentElement;
+ h+='<h3>Aspetto</h3>';
+ h+=row('Vista',sel('view',[['keys','Tasti'],['mixer','Mixer'],['both','Entrambi']]));
+ h+=row('Tema',sel('theme',[['ambra','Tape Ambra'],['grafite','Grafite'],['chiaro','Chiaro']]));
+ h+=row('Contatore',sel('counter',[['both','Tempo e battute'],['time','Solo tempo'],['beat','Solo battute']]));
+ h+='<h3>Mixer</h3>';
+ h+=row('Larghezza delle strisce',sel('sw',[['s','Stretta'],['m','Media'],['l','Larga']]));
+ h+=row('Fondo scala del fader',sel('maxdb',[[12,'+12 dB'],[6,'+6 dB']]));
+ h+=row('Master',chk('master'));
+ h+=row('Meter',chk('meters'));
+ h+=row('Controlli di pan',chk('pan'));
+ h+=row('Pulsante Rec arm',chk('arm'));
+ h+=row('Colori delle tracce',chk('colors'));
+ h+=row('Mostra le tracce nascoste dal mixer',chk('hidden'));
+ h+='<h3>Tastierino</h3>';
+ h+=row('Colonne',sel('cols',[[3,'3'],[4,'4'],[5,'5'],[6,'6']]));
+ h+=row('Striscia tracce M / S / R sotto i tasti',chk('strip'));
+ h+=row('Rec richiede un secondo tocco',chk('recConfirm'));
+ h+='<h3>Tasti</h3>';
+ for(i=0;i<cfg.keys.length;i++){k=cfg.keys[i];
+  h+='<div class="krow"><span class="kn">'+(i+1)+'</span><select data-ki="'+i+'" data-f="a">';
+  for(a in CAT)if(CAT.hasOwnProperty(a))h+='<option value="'+a+'"'+(k.a===a?' selected':'')+'>'+esc(CAT[a].l)+'</option>';
+  h+='<option value="custom"'+(k.a==='custom'?' selected':'')+'>Azione personalizzata…</option></select>';
+  h+='<label><input type="checkbox" data-ki="'+i+'" data-f="big"'+(k.big?' checked':'')+'>Grande</label>';
+  h+='<button class="mini" data-act="up" data-ki="'+i+'">↑</button><button class="mini" data-act="down" data-ki="'+i+'">↓</button><button class="mini" data-act="del" data-ki="'+i+'">✕</button>';
+  if(k.a==='custom')h+='<div class="cust"><input type="text" data-ki="'+i+'" data-f="id" placeholder="Command ID" value="'+esc(k.id||'')+'" autocapitalize="off" autocorrect="off" spellcheck="false"><input type="text" data-ki="'+i+'" data-f="l" placeholder="Etichetta" value="'+esc(k.l||'')+'"></div>';
+  h+='</div>';}
+ h+='<div class="note">Il Command ID si legge in REAPER, nella lista delle azioni (clic destro sull\'azione, «Copy selected action command ID»). Funzionano anche gli ID testuali degli script, che cominciano con il trattino basso.</div>';
+ h+='<div class="btnrow"><button class="tbtn" data-act="add">Aggiungi un tasto</button><button class="tbtn" data-act="keysreset">Ripristina i tasti</button></div>';
+ h+='<h3>Configurazione</h3><div class="note">Le impostazioni restano su questo dispositivo. Per portarle su un altro, copiare il testo qui sotto e incollarlo nella stessa casella dell\'altro dispositivo.</div>';
+ h+='<textarea id="cfgText" autocapitalize="off" autocorrect="off" spellcheck="false">'+esc(JSON.stringify(cfg))+'</textarea>';
+ h+='<div class="btnrow"><button class="tbtn" data-act="import">Applica il testo</button><button class="tbtn" data-act="reset">Ripristina tutto</button>';
+ if(fs.requestFullscreen||fs.webkitRequestFullscreen)h+='<button class="tbtn" data-act="full">Schermo intero</button>';
+ h+='</div>';
+ var top=card.scrollTop;card.innerHTML=h;card.scrollTop=top;
+}
+function closeSettings(){tog($('settings'),'open',false);if(needReload)location.reload();}
+card.addEventListener('change',function(e){
+ var t=e.target,k=t.getAttribute('data-k'),ki=t.getAttribute('data-ki'),f=t.getAttribute('data-f'),v;
+ if(k){v=t.type==='checkbox'?(t.checked?1:0):t.value;if(typeof cfg[k]==='number')v=+v;cfg[k]=v;saveCfg();applyCfg();return;}
+ if(ki!==null&&f){ki=+ki;
+  if(f==='a'){cfg.keys[ki].a=t.value;}
+  else if(f==='big'){if(t.checked)cfg.keys[ki].big=1;else delete cfg.keys[ki].big;}
+  else{cfg.keys[ki][f]=t.value.replace(/^\s+|\s+$/g,'');}
+  saveCfg();applyCfg();if(f==='a')renderSettings();}
+});
+card.addEventListener('click',function(e){
+ var t=e.target,a=t.getAttribute&&t.getAttribute('data-act'),i=+t.getAttribute('data-ki'),k=cfg.keys,x,fs;
+ if(!a)return;
+ if(a==='close'){closeSettings();return;}
+ if(a==='full'){fs=document.documentElement;
+  if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+  else(fs.requestFullscreen||fs.webkitRequestFullscreen).call(fs);return;}
+ if(a==='up'&&i>0){x=k[i];k[i]=k[i-1];k[i-1]=x;}
+ else if(a==='down'&&i<k.length-1){x=k[i];k[i]=k[i+1];k[i+1]=x;}
+ else if(a==='del'){k.splice(i,1);}
+ else if(a==='add'){k.push({a:'save'});}
+ else if(a==='keysreset'){cfg.keys=defaults().keys;}
+ else if(a==='reset'){cfg=defaults();}
+ else if(a==='import'){try{cfg=mergeCfg(defaults(),JSON.parse($('cfgText').value));}catch(err){$('cfgText').value='Testo non valido: '+err.message;return;}}
+ saveCfg();applyCfg();renderSettings();
+});
+$('settings').addEventListener('click',function(e){if(e.target===this)closeSettings();});
+$('gearBtn').addEventListener('click',function(){renderSettings();tog($('settings'),'open',true);});
+$('viewSeg').addEventListener('click',function(e){var v=e.target.getAttribute('data-view');if(v){cfg.view=v;saveCfg();applyCfg();}});
+
+/* ============================================================
+   9. APPLICAZIONE DELLA CONFIGURAZIONE E AVVIO
+   ============================================================ */
+var lastMaxdb=null;
+function applyCfg(){
+ var b=document.body,seg=$('viewSeg').children,i,id;
+ b.className='theme-'+cfg.theme+' view-'+cfg.view+' sw-'+cfg.sw+' cnt-'+cfg.counter+
+  (cfg.meters?'':' no-meters')+(cfg.pan?'':' no-pan')+(cfg.arm?'':' no-arm')+(cfg.strip?'':' no-strip');
+ for(i=0;i<seg.length;i++)tog(seg[i],'active',seg[i].getAttribute('data-view')===cfg.view);
+ renderKeys();
+ if(lastMaxdb!==cfg.maxdb){lastMaxdb=cfg.maxdb;S={};}     /* la scala cambia: le strisce vanno ricostruite */
+ stripOrder='?';for(id in S)if(S.hasOwnProperty(id))S[id].L={};
+ setupPolling();
+ if(tracksWanted())cmd('TRACK');
+}
+function fit(){$('app').style.height=window.innerHeight+'px';}   /* 100vh su Android e iOS include la barra degli indirizzi */
+window.addEventListener('resize',fit);
+window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
+
+/* ============================================================
+   10. MODALITA' DEMO
+   Si attiva se main.js non e' stato caricato (file aperto fuori da REAPER):
+   serve a provare l'interfaccia e a preparare la configurazione.
+   ============================================================ */
+var DT=[{n:'MASTER',f:0,v:1,p:0,w:1,m:3,c:0},{n:'Trombone',f:2,v:0.71,p:0,w:1,m:3,c:0x01c8642d},{n:'Pianoforte preparato',f:0,v:1,p:-0.2,w:0.6,m:5,c:0x012d7fc8},
+ {n:'Timpano',f:8,v:0.5,p:0.3,w:1,m:3,c:0},{n:'Elettronica',f:16,v:1.4,p:-1,w:1,m:6,c:0x0159a14f},{n:'Nastro',f:0,v:1.4,p:-0.4,w:0.7,m:6,c:0x0159a14f},
+ {n:'Room',f:64,v:0.25,p:0,w:1,m:5,c:0},{n:'Riverbero',f:0,v:0.6,p:0,w:1,m:0,c:0x018a5fb0}],dPos=0,dPs=0,dRep=0,dCmd={},dLast=now();
+function demoCmd(q){
+ var parts=q.split(';'),out='',i,m,t,k,bit,tt=now();
+ if(dPs===1||dPs===5)dPos+=(tt-dLast)/1000;dLast=tt;
+ for(i=0;i<parts.length;i++){k=parts[i];
+  if(k==='TRANSPORT'){var bt=dPos*2;out+='TRANSPORT\t'+dPs+'\t'+dPos.toFixed(3)+'\t'+dRep+'\t'+dPos.toFixed(3)+'\t'+(Math.floor(bt/4)+1)+'.'+(Math.floor(bt%4)+1)+'.'+pad2(bt%1*100)+'\n';}
+  else if(k==='TRACK'){for(m=0;m<DT.length;m++){t=DT[m];
+   var lvl=(dPs===1||dPs===5)&&!(t.f&8)?Math.round(200*Math.log(t.v*(0.15+Math.random()*0.5))/Math.LN10):-1500;
+   out+='TRACK\t'+m+'\t'+t.n+'\t'+t.f+'\t'+t.v+'\t'+t.p+'\t'+(lvl+40)+'\t'+lvl+'\t'+t.w+'\t'+t.m+'\t0\t0\t1\t'+t.c+'\n';}}
+  else if(k.indexOf('GET/')===0){out+='CMDSTATE\t'+k.substr(4)+'\t'+(dCmd[k.substr(4)]?1:0)+'\n';}
+  else if((m=/^SET\/TRACK\/(\d+)\/(\w+)\/(.+)$/.exec(k))&&DT[+m[1]]){t=DT[+m[1]];
+   if(m[2]==='VOL')t.v=parseFloat(m[3]);else if(m[2]==='PAN')t.p=parseFloat(m[3]);else if(m[2]==='WIDTH')t.w=parseFloat(m[3]);
+   else{bit={MUTE:8,SOLO:16,RECARM:64}[m[2]];if(bit)t.f^=bit;}}
+  else if(k==='1007')dPs=1;else if(k==='40667'){dPs=0;}else if(k==='1013')dPs=5;
+  else if(k==='1008')dPs=dPs===1?2:(dPs===5?6:(dPs===2?1:(dPs===6?5:dPs)));
+  else if(k==='40044')dPs=dPs===1||dPs===5?0:1;
+  else if(k==='40042')dPos=0;else if(k==='41042')dPos+=2;else if(k==='41043')dPos=Math.max(0,dPos-2);
+  else if(k==='1068')dRep=dRep?0:1;
+  else if(/^[_\w]+$/.test(k))dCmd[k]=!dCmd[k];
+ }
+ if(out)setTimeout(function(){window.wwr_onreply(out);},0);
+}
+
+fit();
+applyCfg();
+if(!demo&&typeof wwr_start==='function')wwr_start();
+/* il font del contatore si carica dopo: senza rete la pagina non resta bloccata */
+window.addEventListener('load',function(){var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Barlow:wght@500&display=swap';document.head.appendChild(l);});
+})();
+</script>
+</body>
+</html>
