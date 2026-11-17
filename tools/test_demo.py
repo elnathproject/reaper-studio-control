@@ -97,6 +97,30 @@ async def main():
         failed += not ok
         print(("ok   " if ok else "FAIL ") + "fader double tap returns to 0.0  got " + db)
 
+        # language: English by default, Italian from the settings, kept after a reload
+        async def texts():
+            seg = await page.locator("#viewSeg button").all_inner_texts()
+            return seg, await page.locator("#connText").inner_text(), await page.locator("#gearBtn").get_attribute("title")
+
+        seg, conn, gear = await texts()
+        ok = seg == ["Keys", "Mixer", "Both"] and conn == "Demo: main.js not loaded" and gear == "Settings"
+        failed += not ok
+        print(("ok   " if ok else "FAIL ") + "default language is English  got", seg, conn, gear)
+        await page.click("#gearBtn")
+        await page.select_option('select[data-k="lang"]', "it")
+        await page.wait_for_timeout(300)
+        seg, conn, gear = await texts()
+        title = await page.locator("#settingsCard h2").inner_text()
+        ok = seg == ["Tasti", "Mixer", "Entrambi"] and conn == "Demo: main.js assente" and gear == "Impostazioni" and title == "Impostazioni"
+        failed += not ok
+        print(("ok   " if ok else "FAIL ") + "switching to Italian updates the page and the open settings  got", seg, conn, gear, title)
+        await page.reload()
+        await page.wait_for_timeout(600)
+        seg, conn, gear = await texts()
+        ok = seg == ["Tasti", "Mixer", "Entrambi"]
+        failed += not ok
+        print(("ok   " if ok else "FAIL ") + "Italian is kept after a reload  got", seg)
+
         print("page errors:", errors or "none")
         await browser.close()
         sys.exit(1 if failed or errors else 0)

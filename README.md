@@ -43,7 +43,8 @@ Knobs turn by vertical drag, as in REAPER. While a knob is moving, its value rep
 
 **Layout and appearance**
 - Three views: keypad, mixer, or both (side by side in landscape, stacked in portrait).
-- Three themes: Tape Ambra (default), Graphite, Light.
+- Three themes: Tape Amber (default), Graphite, Light.
+- English interface by default, Italian from the settings panel. The choice is stored on the device.
 - Narrow, medium and wide strips. Meters, pan, record arm, master and track colours can each be switched off.
 - Settings are stored on the device. To move a configuration to another device, copy the text from the settings panel and paste it there.
 
@@ -125,10 +126,10 @@ The page loads `main.js` from the same server, so there is nothing else to copy.
 
 ### 4. Check that it works
 
-- The dot at the top right is lit and the text reads **Collegato a REAPER** ("connected to REAPER").
+- The dot at the top right is lit and the text reads **Connected to REAPER**.
 - Press Play: the counter runs and the Play key lights up.
-- **Demo: main.js assente** means the page was not served by REAPER: see below.
-- **REAPER non risponde** means no reply has arrived for three seconds.
+- **Demo: main.js not loaded** means the page was not served by REAPER: see below.
+- **REAPER not responding** means no reply has arrived for three seconds.
 - In REAPER's dialog the **Server status** lines count requests and failed requests (404), which helps to see whether the device reaches the computer at all.
 
 ### Troubleshooting
@@ -138,7 +139,7 @@ The page loads `main.js` from the same server, so there is nothing else to copy.
 | The browser says it cannot connect, while `http://localhost:8080` works on the computer | The device cannot reach the computer | Check that the device is on the same Wi-Fi (not mobile data, a guest network or a VPN). Allow incoming connections for REAPER in the computer's firewall. Look in the router for an option called client isolation or AP isolation and turn it off. |
 | It worked yesterday and not today | The computer's address changed | Read the Access URL again in REAPER's dialog. A reserved address for the computer in the router avoids this. |
 | The browser searches the web or shows a security warning | The address was typed without `http://` and the browser tried `https` | Type the whole address starting with `http://`. REAPER's server does not speak `https`. |
-| The page shows **Demo: main.js assente** | The page was opened from a file or from an address that is not REAPER's server | Open it through the address in step 3. |
+| The page shows **Demo: main.js not loaded** | The page was opened from a file or from an address that is not REAPER's server | Open it through the address in step 3. |
 | An error page or a 404 in REAPER's server status | The file is not in `reaper_www_root`, or the name in the address differs | Check the folder and the spelling of the file name. |
 | The browser asks for a user name and password | They are set in REAPER | Enter them as set in the dialog. |
 
@@ -167,7 +168,7 @@ The page sends commands and polls state through the functions of REAPER's web in
 - The pan mode of a track can be read but not changed from the page, because the web interface has no command for it. Choose it in REAPER.
 - The fader law is a close approximation of REAPER's, not an exact copy. Values read the same at 0 dB and at the ends, and differ slightly in between.
 - No sends, FX, routing, or item and take editing. This is a transport and mixer remote.
-- The interface language is currently Italian (Tasti, Mixer, Entrambi, Impostazioni and the labels of the keys).
+- Only English and Italian are available. Adding a language means adding one more entry to each line of the `STR` table (and to `IT`/`ITT` for the key labels) in the HTML file.
 - Browsers older than iOS 10.3 cannot show the keypad, which relies on CSS Grid.
 
 ## Development

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -224,9 +224,9 @@ body.view-both .lbl{letter-spacing:.03em}
 <header class="top">
  <div class="brand"><div class="brandmark">R</div><div class="brandtx">REAPER <span class="sub">/ STUDIO CONTROL</span></div></div>
  <div class="topright">
-  <span class="dot" id="connDot"></span><span class="conntext" id="connText">In attesa di REAPER</span>
-  <div class="seg" id="viewSeg"><button data-view="keys">Tasti</button><button data-view="mixer">Mixer</button><button data-view="both">Entrambi</button></div>
-  <button class="iconbtn" id="gearBtn" title="Impostazioni"><svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h10M20 17h0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.6"/><circle cx="9" cy="12" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg></button>
+  <span class="dot" id="connDot"></span><span class="conntext" id="connText">Waiting for REAPER</span>
+  <div class="seg" id="viewSeg"><button data-view="keys">Keys</button><button data-view="mixer">Mixer</button><button data-view="both">Both</button></div>
+  <button class="iconbtn" id="gearBtn" title="Settings"><svg viewBox="0 0 24 24"><path d="M4 7h9M19 7h1M4 12h2M12 12h8M4 17h10M20 17h0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.6"/><circle cx="9" cy="12" r="2.6"/><circle cx="17" cy="17" r="2.6"/></svg></button>
  </div>
 </header>
 <main>
@@ -243,10 +243,10 @@ body.view-both .lbl{letter-spacing:.03em}
 
 <div class="sheet" id="settings"><div class="card" id="settingsCard"></div></div>
 <div class="sheet" id="gotoDlg"><div class="dlg">
- <strong>Vai a…</strong>
+ <strong>Go to…</strong>
  <input type="text" id="gotoIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="1:02.500">
- <div class="note">Tempo (1:02.500) oppure battuta (12.1.00).</div>
- <div class="btnrow"><button class="tbtn active" id="gotoOk">Vai</button><button class="tbtn" id="gotoNo">Annulla</button></div>
+ <div class="note">Time (1:02.500) or bar position (12.1.00).</div>
+ <div class="btnrow"><button class="tbtn active" id="gotoOk">Go</button><button class="tbtn" id="gotoNo">Cancel</button></div>
 </div></div>
 
 <script>
@@ -260,26 +260,31 @@ body.view-both .lbl{letter-spacing:.03em}
    Per aggiungere un'azione al menu basta una riga qui e, se serve, un'icona in ICON.
    ============================================================ */
 var CAT={
- start:{id:40042,l:'Inizio'},
- end:{id:40043,l:'Fine'},
+ start:{id:40042,l:'Start'},
+ end:{id:40043,l:'End'},
  stop:{id:40667,l:'Stop'},
- pause:{id:1008,l:'Pausa'},
+ pause:{id:1008,l:'Pause'},
  play:{id:1007,l:'Play'},
  playstop:{id:40044,l:'Play/Stop'},
  rec:{id:1013,l:'Rec'},
- back:{id:41043,l:'Indietro',t:'Cursore indietro di una battuta'},
- fwd:{id:41042,l:'Avanti',t:'Cursore avanti di una battuta'},
+ back:{id:41043,l:'Back',t:'Move the cursor back one bar'},
+ fwd:{id:41042,l:'Forward',t:'Move the cursor forward one bar'},
  repeat:{id:1068,l:'Repeat'},
  undo:{id:40029,l:'Undo'},
  redo:{id:40030,l:'Redo'},
- metro:{id:40364,l:'Metronomo',tg:1},
+ metro:{id:40364,l:'Metronome',tg:1},
  snap:{id:1157,l:'Snap',tg:1},
- mprev:{id:40172,l:'Marker prec.'},
- mnext:{id:40173,l:'Marker succ.'},
- addmarker:{id:40157,l:'Nuovo marker'},
- save:{id:40026,l:'Salva'},
- 'goto':{id:0,l:'Vai a…'}
+ mprev:{id:40172,l:'Prev. marker'},
+ mnext:{id:40173,l:'Next marker'},
+ addmarker:{id:40157,l:'New marker'},
+ save:{id:40026,l:'Save'},
+ 'goto':{id:0,l:'Go to…'}
 };
+/* etichette e suggerimenti in italiano: le voci mancanti restano uguali all'inglese */
+var IT={start:'Inizio',end:'Fine',pause:'Pausa',back:'Indietro',fwd:'Avanti',metro:'Metronomo',mprev:'Marker prec.',mnext:'Marker succ.',addmarker:'Nuovo marker',save:'Salva','goto':'Vai a…'};
+var ITT={back:'Cursore indietro di una battuta',fwd:'Cursore avanti di una battuta'};
+function catL(a){return cfg.lang==='it'&&IT[a]?IT[a]:CAT[a].l;}
+function catT(a){return cfg.lang==='it'&&ITT[a]?ITT[a]:(CAT[a].t||catL(a));}
 var MARKER='<path d="M9.6 7.3v9.4a.5.5 0 0 1-.78.42L2.9 12.4a.5.5 0 0 1 0-.8l5.92-4.72a.5.5 0 0 1 .78.42z"/><rect x="14.6" y="4" width="1.8" height="16" rx=".9"/><path d="M16.4 4.6h4.4a.4.4 0 0 1 .33.63L19.6 7.9l1.53 2.67a.4.4 0 0 1-.33.6h-4.4z"/>';
 var START='<rect x="3.5" y="5" width="3" height="14" rx="1"/><path d="M20.5 5.2v13.6a.6.6 0 0 1-.95.5L9 12.5a.6.6 0 0 1 0-1l10.55-6.8a.6.6 0 0 1 .95.5z"/>';
 var FLIP='<g transform="translate(24 0) scale(-1 1)">';
@@ -317,7 +322,7 @@ function defaults(){return{
  counter:'both',    /* both | time | beat */
  sw:'m',            /* larghezza strisce: s | m | l */
  maxdb:12,          /* fondo scala del fader: 12 oppure 6 */
- ver:2,master:1,meters:1,pan:1,arm:1,colors:1,hidden:0,
+ ver:2,lang:'en',master:1,meters:1,pan:1,arm:1,colors:1,hidden:0,
  cols:4,strip:1,recConfirm:0,
  keys:[{a:'start'},{a:'back'},{a:'fwd'},{a:'play',big:1},{a:'repeat'},{a:'metro'},{a:'snap'},
        {a:'mprev'},{a:'mnext'},{a:'goto'},{a:'pause'},{a:'undo'},{a:'redo'},{a:'rec'},{a:'stop'}]
@@ -330,6 +335,34 @@ function loadCfg(){var d=defaults(),s,k;try{s=JSON.parse(localStorage.getItem(LS
 function mergeCfg(d,s){var k;if(s&&typeof s==='object'){for(k in d)if(d.hasOwnProperty(k)&&s[k]!==undefined&&typeof s[k]===typeof d[k])d[k]=s[k];}
  if(!(d.keys instanceof Array)||!d.keys.length)d.keys=defaults().keys;return d;}
 function saveCfg(){try{localStorage.setItem(LS,JSON.stringify(cfg));}catch(e){}}
+
+/* testi dell'interfaccia: [inglese, italiano]. Per aggiungere una lingua basta una terza voce in ogni riga. */
+var STR={
+ waiting:['Waiting for REAPER','In attesa di REAPER'],connected:['Connected to REAPER','Collegato a REAPER'],
+ demo:['Demo: main.js not loaded','Demo: main.js assente'],noreply:['REAPER not responding','REAPER non risponde'],
+ vKeys:['Keys','Tasti'],vMixer:['Mixer','Mixer'],vBoth:['Both','Entrambi'],
+ settings:['Settings','Impostazioni'],close:['Close','Chiudi'],
+ gotoT:['Go to…','Vai a…'],gotoNote:['Time (1:02.500) or bar position (12.1.00).','Tempo (1:02.500) oppure battuta (12.1.00).'],go:['Go','Vai'],cancel:['Cancel','Annulla'],
+ noTracks:['No tracks to show.','Nessuna traccia da mostrare.'],track:['Track ','Traccia '],
+ panL:['Pan, left channel','Pan del canale sinistro'],panR:['Pan, right channel','Pan del canale destro'],pan:['Pan','Pan'],balance:['Balance','Balance'],width:['Width','Width'],
+ actionT:['Action ','Azione '],
+ secLook:['Appearance','Aspetto'],lang:['Language','Lingua'],view:['View','Vista'],theme:['Theme','Tema'],
+ themeAmber:['Tape Amber','Tape Ambra'],themeGraphite:['Graphite','Grafite'],themeLight:['Light','Chiaro'],
+ counter:['Counter','Contatore'],cBoth:['Time and bars','Tempo e battute'],cTime:['Time only','Solo tempo'],cBeat:['Bars only','Solo battute'],
+ secMixer:['Mixer','Mixer'],stripW:['Strip width','Larghezza delle strisce'],narrow:['Narrow','Stretta'],medium:['Medium','Media'],wide:['Wide','Larga'],
+ faderMax:['Fader maximum','Fondo scala del fader'],master:['Master','Master'],meters:['Meters','Meter'],panCtl:['Pan controls','Controlli di pan'],
+ armBtn:['Rec arm button','Pulsante Rec arm'],colors:['Track colours','Colori delle tracce'],hidden:['Show tracks hidden from the mixer','Mostra le tracce nascoste dal mixer'],
+ secKeypad:['Keypad','Tastierino'],cols:['Columns','Colonne'],strip:['M / S / R track strip below the keys','Striscia tracce M / S / R sotto i tasti'],recConf:['Rec needs a second tap','Rec richiede un secondo tocco'],
+ secKeys:['Keys','Tasti'],custom:['Custom action…','Azione personalizzata…'],big:['Large','Grande'],label:['Label','Etichetta'],
+ cmdNote:['Find the Command ID in REAPER\'s action list: right-click the action and choose "Copy selected action command ID". Script IDs, which start with an underscore, work too.',
+  'Il Command ID si legge in REAPER, nella lista delle azioni (clic destro sull\'azione, «Copy selected action command ID»). Funzionano anche gli ID testuali degli script, che cominciano con il trattino basso.'],
+ addKey:['Add a key','Aggiungi un tasto'],resetKeys:['Reset the keys','Ripristina i tasti'],
+ secConfig:['Configuration','Configurazione'],
+ cfgNote:['Settings are stored on this device. To move them to another one, copy the text below and paste it into the same box on the other device.',
+  'Le impostazioni restano su questo dispositivo. Per portarle su un altro, copiare il testo qui sotto e incollarlo nella stessa casella dell\'altro dispositivo.'],
+ applyText:['Apply the text','Applica il testo'],resetAll:['Reset everything','Ripristina tutto'],fullscreen:['Full screen','Schermo intero'],badText:['Invalid text: ','Testo non valido: ']
+};
+function T(k){var s=STR[k];return s?s[cfg.lang==='it'?1:0]:k;}
 
 /* ============================================================
    3. UTILITA'
@@ -360,9 +393,9 @@ function meterPct(tenthDb){return clamp((tenthDb/10+60)/66*100,0,100);}   /* sca
    4. COMUNICAZIONE CON REAPER (main.js del Web Control)
    ============================================================ */
 var demo=(typeof wwr_req!=='function');
-var lastReply=0,connOk=null,polled=[],needReload=false,demoTimers=[];
+var lastReply=0,connOk=null,connKey='waiting',polled=[],needReload=false,demoTimers=[];
 function cmd(s){if(demo)demoCmd(String(s));else wwr_req(String(s));}
-function setConn(ok,msg){if(connOk===ok&&$('connText').textContent===msg)return;connOk=ok;tog($('connDot'),'ok',ok);$('connText').textContent=msg;}
+function setConn(ok,key){if(connOk===ok&&connKey===key)return;connOk=ok;connKey=key;tog($('connDot'),'ok',ok);$('connText').textContent=T(key);}
 
 function tracksWanted(){return cfg.view!=='keys'||cfg.strip;}
 function setupPolling(){
@@ -387,7 +420,7 @@ function setupPolling(){
 var ps=0,rep=false,cmdState={};
 window.wwr_onreply=function(res){
  var lines=res.split('\n'),i,t,list=null;
- lastReply=now();setConn(true,demo?'Demo: main.js assente':'Collegato a REAPER');
+ lastReply=now();setConn(true,demo?'demo':'connected');
  for(i=0;i<lines.length;i++){t=lines[i].split('\t');
   if(t[0]==='TRANSPORT'&&t.length>4){ps=+t[1];rep=(+t[3])!==0;setCounter(+t[2],t[5]||'');}
   else if(t[0]==='TRACK'&&t.length>4){(list||(list=[])).push({id:+t[1],name:unesc(t[2]||''),flags:+t[3]||0,vol:+t[4]||0,pan:+t[5]||0,
@@ -397,7 +430,7 @@ window.wwr_onreply=function(res){
  refreshKeys();
  if(list)updateTracks(list);   /* la lista arriva intera: le tracce cancellate spariscono da sole */
 };
-setInterval(function(){if(!demo&&lastReply&&now()-lastReply>3000)setConn(false,'REAPER non risponde');},1000);
+setInterval(function(){if(!demo&&lastReply&&now()-lastReply>3000)setConn(false,'noreply');},1000);
 
 /* ============================================================
    5. CONTATORE
@@ -415,8 +448,8 @@ function setCounter(sec,beat){
    ============================================================ */
 var keysEl=$('keys'),miniEl=$('miniT'),recAsk=0;
 function keyInfo(k){
- if(k.a==='custom')return{a:'custom',id:k.id||'',l:k.l||k.id||'?',ic:'custom',t:'Azione '+(k.id||'')};
- var c=CAT[k.a]||CAT.stop;return{a:CAT[k.a]?k.a:'stop',id:c.id,l:c.l,ic:CAT[k.a]?k.a:'stop',t:c.t||c.l};
+ if(k.a==='custom')return{a:'custom',id:k.id||'',l:k.l||k.id||'?',ic:'custom',t:T('actionT')+(k.id||'')};
+ var c=CAT[k.a]||CAT.stop;var a=CAT[k.a]?k.a:'stop';return{a:a,id:c.id,l:catL(a),ic:a,t:catT(a)};
 }
 function keyHtml(k,attr,withLabel){
  var c=keyInfo(k),cls='key'+(k.big?' big':'')+(c.a==='rec'?' rec':'')+(c.a==='pause'?' pausekey':'');
@@ -508,7 +541,7 @@ function updateTracks(all){
   stripOrder=order;stripsEl.innerHTML='';
   var old=S;S={};
   for(i=0;i<list.length;i++){s=old[list[i].id]||buildStrip(list[i]);S[list[i].id]=s;stripsEl.appendChild(s.el);}
-  if(!list.length)stripsEl.innerHTML='<div class="empty">Nessuna traccia da mostrare.</div>';
+  if(!list.length)stripsEl.innerHTML='<div class="empty">'+T('noTracks')+'</div>';
  }
  for(i=0;i<list.length;i++)updateStrip(S[list[i].id],list[i]);
 }
@@ -516,7 +549,7 @@ function setVolUI(s,v){var p=volToPos(v);s.thumb.style.top=((1-p)*100).toFixed(2
 function setPanUI(s,type,v){var i=type==='pan2'?1:0,r='rotate('+(v*135).toFixed(1)+'deg)';s.knobi[i].style.webkitTransform=r;s.knobi[i].style.transform=r;s.panv[i].textContent=knobText(type,v,s.L.pm);}
 function updateStrip(s,t){
  var L=s.L,nm,free=!(drags.busy[t.id])&&!(hold[t.id]>now()),c,v;
- nm=t.id===0?'MASTER':(t.id+'  '+(t.name||'Traccia '+t.id));
+ nm=t.id===0?'MASTER':(t.id+'  '+(t.name||T('track')+t.id));
  if(L.name!==nm){L.name=nm;s.name.textContent=nm;s.name.title=nm;}
  c=cfg.colors?(t.color&0xffffff):0;
  if(L.color!==c){L.color=c;
@@ -525,8 +558,8 @@ function updateStrip(s,t){
  if(L.flags!==t.flags){L.flags=t.flags;tog(s.el,'sel',t.flags&2);tog(s.bM,'active',t.flags&8);tog(s.bS,'active',t.flags&48);tog(s.arm,'active',t.flags&64);}
  if(free&&L.vol!==t.vol){L.vol=t.vol;setVolUI(s,t.vol);}
  if(L.pm!==t.pm){L.pm=t.pm;tog(s.el,'pm2',t.pm!==3);L.pan=L.pan2=null;
-  s.panv[0].parentNode.title=t.pm===6?'Pan del canale sinistro':(t.pm===5?'Pan':'Balance');
-  s.panv[1].parentNode.title=t.pm===6?'Pan del canale destro':'Width';}
+  s.panv[0].parentNode.title=t.pm===6?T('panL'):(t.pm===5?T('pan'):T('balance'));
+  s.panv[1].parentNode.title=t.pm===6?T('panR'):T('width');}
  if(free&&L.pan!==t.pan){L.pan=t.pan;setPanUI(s,'pan',t.pan);}
  if(free&&t.pm!==3&&L.pan2!==t.pan2){L.pan2=t.pan2;setPanUI(s,'pan2',t.pan2);}
  if(cfg.meters&&cfg.view!=='keys'){
@@ -622,46 +655,47 @@ function sel(key,opts){var h='<select data-k="'+key+'">',i;for(i=0;i<opts.length
 function chk(key){return '<input type="checkbox" data-k="'+key+'"'+(cfg[key]?' checked':'')+'>';}
 function row(label,ctl){return '<label class="row"><span>'+label+'</span>'+ctl+'</label>';}
 function renderSettings(){
- var h='<div class="cardhead"><h2>Impostazioni</h2><button class="tbtn active" data-act="close">Chiudi</button></div>',i,k,a,fs=document.documentElement;
- h+='<h3>Aspetto</h3>';
- h+=row('Vista',sel('view',[['keys','Tasti'],['mixer','Mixer'],['both','Entrambi']]));
- h+=row('Tema',sel('theme',[['ambra','Tape Ambra'],['grafite','Grafite'],['chiaro','Chiaro']]));
- h+=row('Contatore',sel('counter',[['both','Tempo e battute'],['time','Solo tempo'],['beat','Solo battute']]));
- h+='<h3>Mixer</h3>';
- h+=row('Larghezza delle strisce',sel('sw',[['s','Stretta'],['m','Media'],['l','Larga']]));
- h+=row('Fondo scala del fader',sel('maxdb',[[12,'+12 dB'],[6,'+6 dB']]));
- h+=row('Master',chk('master'));
- h+=row('Meter',chk('meters'));
- h+=row('Controlli di pan',chk('pan'));
- h+=row('Pulsante Rec arm',chk('arm'));
- h+=row('Colori delle tracce',chk('colors'));
- h+=row('Mostra le tracce nascoste dal mixer',chk('hidden'));
- h+='<h3>Tastierino</h3>';
- h+=row('Colonne',sel('cols',[[3,'3'],[4,'4'],[5,'5'],[6,'6']]));
- h+=row('Striscia tracce M / S / R sotto i tasti',chk('strip'));
- h+=row('Rec richiede un secondo tocco',chk('recConfirm'));
- h+='<h3>Tasti</h3>';
+ var h='<div class="cardhead"><h2>'+T('settings')+'</h2><button class="tbtn active" data-act="close">'+T('close')+'</button></div>',i,k,a,fs=document.documentElement;
+ h+='<h3>'+T('secLook')+'</h3>';
+ h+=row(T('lang'),sel('lang',[['en','English'],['it','Italiano']]));
+ h+=row(T('view'),sel('view',[['keys',T('vKeys')],['mixer',T('vMixer')],['both',T('vBoth')]]));
+ h+=row(T('theme'),sel('theme',[['ambra',T('themeAmber')],['grafite',T('themeGraphite')],['chiaro',T('themeLight')]]));
+ h+=row(T('counter'),sel('counter',[['both',T('cBoth')],['time',T('cTime')],['beat',T('cBeat')]]));
+ h+='<h3>'+T('secMixer')+'</h3>';
+ h+=row(T('stripW'),sel('sw',[['s',T('narrow')],['m',T('medium')],['l',T('wide')]]));
+ h+=row(T('faderMax'),sel('maxdb',[[12,'+12 dB'],[6,'+6 dB']]));
+ h+=row(T('master'),chk('master'));
+ h+=row(T('meters'),chk('meters'));
+ h+=row(T('panCtl'),chk('pan'));
+ h+=row(T('armBtn'),chk('arm'));
+ h+=row(T('colors'),chk('colors'));
+ h+=row(T('hidden'),chk('hidden'));
+ h+='<h3>'+T('secKeypad')+'</h3>';
+ h+=row(T('cols'),sel('cols',[[3,'3'],[4,'4'],[5,'5'],[6,'6']]));
+ h+=row(T('strip'),chk('strip'));
+ h+=row(T('recConf'),chk('recConfirm'));
+ h+='<h3>'+T('secKeys')+'</h3>';
  for(i=0;i<cfg.keys.length;i++){k=cfg.keys[i];
   h+='<div class="krow"><span class="kn">'+(i+1)+'</span><select data-ki="'+i+'" data-f="a">';
-  for(a in CAT)if(CAT.hasOwnProperty(a))h+='<option value="'+a+'"'+(k.a===a?' selected':'')+'>'+esc(CAT[a].l)+'</option>';
-  h+='<option value="custom"'+(k.a==='custom'?' selected':'')+'>Azione personalizzata…</option></select>';
-  h+='<label><input type="checkbox" data-ki="'+i+'" data-f="big"'+(k.big?' checked':'')+'>Grande</label>';
+  for(a in CAT)if(CAT.hasOwnProperty(a))h+='<option value="'+a+'"'+(k.a===a?' selected':'')+'>'+esc(catL(a))+'</option>';
+  h+='<option value="custom"'+(k.a==='custom'?' selected':'')+'>'+T('custom')+'</option></select>';
+  h+='<label><input type="checkbox" data-ki="'+i+'" data-f="big"'+(k.big?' checked':'')+'>'+T('big')+'</label>';
   h+='<button class="mini" data-act="up" data-ki="'+i+'">↑</button><button class="mini" data-act="down" data-ki="'+i+'">↓</button><button class="mini" data-act="del" data-ki="'+i+'">✕</button>';
-  if(k.a==='custom')h+='<div class="cust"><input type="text" data-ki="'+i+'" data-f="id" placeholder="Command ID" value="'+esc(k.id||'')+'" autocapitalize="off" autocorrect="off" spellcheck="false"><input type="text" data-ki="'+i+'" data-f="l" placeholder="Etichetta" value="'+esc(k.l||'')+'"></div>';
+  if(k.a==='custom')h+='<div class="cust"><input type="text" data-ki="'+i+'" data-f="id" placeholder="Command ID" value="'+esc(k.id||'')+'" autocapitalize="off" autocorrect="off" spellcheck="false"><input type="text" data-ki="'+i+'" data-f="l" placeholder="'+T('label')+'" value="'+esc(k.l||'')+'"></div>';
   h+='</div>';}
- h+='<div class="note">Il Command ID si legge in REAPER, nella lista delle azioni (clic destro sull\'azione, «Copy selected action command ID»). Funzionano anche gli ID testuali degli script, che cominciano con il trattino basso.</div>';
- h+='<div class="btnrow"><button class="tbtn" data-act="add">Aggiungi un tasto</button><button class="tbtn" data-act="keysreset">Ripristina i tasti</button></div>';
- h+='<h3>Configurazione</h3><div class="note">Le impostazioni restano su questo dispositivo. Per portarle su un altro, copiare il testo qui sotto e incollarlo nella stessa casella dell\'altro dispositivo.</div>';
+ h+='<div class="note">'+T('cmdNote')+'</div>';
+ h+='<div class="btnrow"><button class="tbtn" data-act="add">'+T('addKey')+'</button><button class="tbtn" data-act="keysreset">'+T('resetKeys')+'</button></div>';
+ h+='<h3>'+T('secConfig')+'</h3><div class="note">'+T('cfgNote')+'</div>';
  h+='<textarea id="cfgText" autocapitalize="off" autocorrect="off" spellcheck="false">'+esc(JSON.stringify(cfg))+'</textarea>';
- h+='<div class="btnrow"><button class="tbtn" data-act="import">Applica il testo</button><button class="tbtn" data-act="reset">Ripristina tutto</button>';
- if(fs.requestFullscreen||fs.webkitRequestFullscreen)h+='<button class="tbtn" data-act="full">Schermo intero</button>';
+ h+='<div class="btnrow"><button class="tbtn" data-act="import">'+T('applyText')+'</button><button class="tbtn" data-act="reset">'+T('resetAll')+'</button>';
+ if(fs.requestFullscreen||fs.webkitRequestFullscreen)h+='<button class="tbtn" data-act="full">'+T('fullscreen')+'</button>';
  h+='</div>';
  var top=card.scrollTop;card.innerHTML=h;card.scrollTop=top;
 }
 function closeSettings(){tog($('settings'),'open',false);if(needReload)location.reload();}
 card.addEventListener('change',function(e){
  var t=e.target,k=t.getAttribute('data-k'),ki=t.getAttribute('data-ki'),f=t.getAttribute('data-f'),v;
- if(k){v=t.type==='checkbox'?(t.checked?1:0):t.value;if(typeof cfg[k]==='number')v=+v;cfg[k]=v;saveCfg();applyCfg();return;}
+ if(k){v=t.type==='checkbox'?(t.checked?1:0):t.value;if(typeof cfg[k]==='number')v=+v;cfg[k]=v;saveCfg();applyCfg();if(k==='lang')renderSettings();return;}
  if(ki!==null&&f){ki=+ki;
   if(f==='a'){cfg.keys[ki].a=t.value;}
   else if(f==='big'){if(t.checked)cfg.keys[ki].big=1;else delete cfg.keys[ki].big;}
@@ -681,7 +715,7 @@ card.addEventListener('click',function(e){
  else if(a==='add'){k.push({a:'save'});}
  else if(a==='keysreset'){cfg.keys=defaults().keys;}
  else if(a==='reset'){cfg=defaults();}
- else if(a==='import'){try{cfg=mergeCfg(defaults(),JSON.parse($('cfgText').value));}catch(err){$('cfgText').value='Testo non valido: '+err.message;return;}}
+ else if(a==='import'){try{cfg=mergeCfg(defaults(),JSON.parse($('cfgText').value));}catch(err){$('cfgText').value=T('badText')+err.message;return;}}
  saveCfg();applyCfg();renderSettings();
 });
 $('settings').addEventListener('click',function(e){if(e.target===this)closeSettings();});
@@ -692,8 +726,17 @@ $('viewSeg').addEventListener('click',function(e){var v=e.target.getAttribute('d
    9. APPLICAZIONE DELLA CONFIGURAZIONE E AVVIO
    ============================================================ */
 var lastMaxdb=null;
+function refreshStatic(){
+ var seg=$('viewSeg').children,d=$('gotoDlg');
+ document.documentElement.lang=cfg.lang==='it'?'it':'en';
+ seg[0].textContent=T('vKeys');seg[1].textContent=T('vMixer');seg[2].textContent=T('vBoth');
+ $('gearBtn').title=T('settings');$('connText').textContent=T(connKey);
+ d.querySelector('strong').textContent=T('gotoT');d.querySelector('.note').textContent=T('gotoNote');
+ $('gotoOk').textContent=T('go');$('gotoNo').textContent=T('cancel');
+}
 function applyCfg(){
  var b=document.body,seg=$('viewSeg').children,i,id;
+ refreshStatic();
  b.className='theme-'+cfg.theme+' view-'+cfg.view+' sw-'+cfg.sw+' cnt-'+cfg.counter+
   (cfg.meters?'':' no-meters')+(cfg.pan?'':' no-pan')+(cfg.arm?'':' no-arm')+(cfg.strip?'':' no-strip');
  for(i=0;i<seg.length;i++)tog(seg[i],'active',seg[i].getAttribute('data-view')===cfg.view);
@@ -712,9 +755,9 @@ window.addEventListener('orientationchange',function(){setTimeout(fit,300);});
    Si attiva se main.js non e' stato caricato (file aperto fuori da REAPER):
    serve a provare l'interfaccia e a preparare la configurazione.
    ============================================================ */
-var DT=[{n:'MASTER',f:0,v:1,p:0,w:1,m:3,c:0},{n:'Trombone',f:2,v:0.71,p:0,w:1,m:3,c:0x01c8642d},{n:'Pianoforte preparato',f:0,v:1,p:-0.2,w:0.6,m:5,c:0x012d7fc8},
- {n:'Timpano',f:8,v:0.5,p:0.3,w:1,m:3,c:0},{n:'Elettronica',f:16,v:1.4,p:-1,w:1,m:6,c:0x0159a14f},{n:'Nastro',f:0,v:1.4,p:-0.4,w:0.7,m:6,c:0x0159a14f},
- {n:'Room',f:64,v:0.25,p:0,w:1,m:5,c:0},{n:'Riverbero',f:0,v:0.6,p:0,w:1,m:0,c:0x018a5fb0}],dPos=0,dPs=0,dRep=0,dCmd={},dLast=now();
+var DT=[{n:'MASTER',f:0,v:1,p:0,w:1,m:3,c:0},{n:'Trombone',f:2,v:0.71,p:0,w:1,m:3,c:0x01c8642d},{n:'Prepared piano',f:0,v:1,p:-0.2,w:0.6,m:5,c:0x012d7fc8},
+ {n:'Timpani',f:8,v:0.5,p:0.3,w:1,m:3,c:0},{n:'Electronics',f:16,v:1.4,p:-1,w:1,m:6,c:0x0159a14f},{n:'Tape',f:0,v:1.4,p:-0.4,w:0.7,m:6,c:0x0159a14f},
+ {n:'Room',f:64,v:0.25,p:0,w:1,m:5,c:0},{n:'Reverb',f:0,v:0.6,p:0,w:1,m:0,c:0x018a5fb0}],dPos=0,dPs=0,dRep=0,dCmd={},dLast=now();
 function demoCmd(q){
  var parts=q.split(';'),out='',i,m,t,k,bit,tt=now();
  if(dPs===1||dPs===5)dPos+=(tt-dLast)/1000;dLast=tt;
