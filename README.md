@@ -136,12 +136,24 @@ The page loads `main.js` from the same server, so there is nothing else to copy.
 
 | What you see | Likely cause | What to do |
 | --- | --- | --- |
-| The browser says it cannot connect, while `http://localhost:8080` works on the computer | The device cannot reach the computer | Check that the device is on the same Wi-Fi (not mobile data, a guest network or a VPN). Allow incoming connections for REAPER in the computer's firewall. Look in the router for an option called client isolation or AP isolation and turn it off. |
+| The browser says it cannot connect, while `http://localhost:8080` works on the computer | The device cannot reach the computer | Check that the device is on the same Wi-Fi (not mobile data, a guest network or a VPN). Allow incoming connections for REAPER in the computer's firewall (see below for macOS). Look in the router for an option called client isolation or AP isolation and turn it off. |
 | It worked yesterday and not today | The computer's address changed | Read the Access URL again in REAPER's dialog. A reserved address for the computer in the router avoids this. |
 | The browser searches the web or shows a security warning | The address was typed without `http://` and the browser tried `https` | Type the whole address starting with `http://`. REAPER's server does not speak `https`. |
 | The page shows **Demo: main.js not loaded** | The page was opened from a file or from an address that is not REAPER's server | Open it through the address in step 3. |
 | An error page or a 404 in REAPER's server status | The file is not in `reaper_www_root`, or the name in the address differs | Check the folder and the spelling of the file name. |
 | The browser asks for a user name and password | They are set in REAPER | Enter them as set in the dialog. |
+
+### macOS firewall
+
+When the macOS firewall is on, it can refuse the tablet's connection while `http://localhost:8080` on the Mac still works. This happens if incoming connections were denied for REAPER, for example by clicking **Deny** in the dialog that macOS shows the first time an app is asked to accept them, or if **Block all incoming connections** is ticked. On macOS 12 Monterey:
+
+1. Choose Apple menu > System Preferences > Security & Privacy > Firewall.
+2. Click the lock at the bottom left and enter the administrator password.
+3. Click **Firewall Options**. Make sure **Block all incoming connections** is not ticked.
+4. Find REAPER in the list and set it to **Allow incoming connections**. If it is missing, click **+**, choose REAPER in the Applications folder and add it.
+5. Click OK, then reload the page on the device.
+
+On macOS 13 Ventura and later the same settings are under System Settings > Network > Firewall > Options. Steps follow Apple's guide, [Block connections to your Mac with a firewall](https://support.apple.com/en-euro/guide/mac-help/mh34041/12.0/mac).
 
 ### A note on security
 
